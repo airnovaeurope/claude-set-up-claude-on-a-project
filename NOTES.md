@@ -31,11 +31,23 @@ Without the deny rule, Claude could open `.env` while "looking at the config". T
 
 ## Finding while setting up: `.env` was not actually git-ignored
 
-The starter `.gitignore` had every line after the first indented with spaces. Git does not trim leading spaces from a pattern, so `   .env` never matched `.env`. I checked this: with a test `.env` file present, `git status` listed it as untracked and ready to commit, and `.claude/settings.local.json` had the same problem. I removed the indentation in a separate commit. The deny rule and the ignore rule now protect `.env` from two sides.
+The starter `.gitignore` had every line after the first indented with spaces. Git does not trim leading spaces from a pattern, so `   .env` never matched `.env`. I checked this: with a test `.env` file present, `git status` listed it as untracked and ready to commit, and `.claude/settings.local.json` had the same problem. This PR is scoped to `CLAUDE.md`, `.claude/settings.json` and `NOTES.md`, so I have **not** changed `.gitignore` here. Fixing it (removing the leading spaces) belongs in its own PR. Until then, the `Read(./.env)` deny rule is what keeps Claude out of `.env`.
 
-## Verification
+## Verification (fresh session)
 
-- **Install and sign-in.** Claude Code is installed (`claude` is on the PATH at `/opt/node22/bin/claude`). I did this work inside a Claude Code session in a cloud workspace.
-- **Loading.** I registered the project folder with the session, and the new `CLAUDE.md` loaded straight into Claude's context as project memory, which is the same list `/memory` shows. Asked "how do I run the tests here?", it answers `npm test` from the file. I did not run `/memory` itself.
-- **Permissions.** `.claude/settings.json` is valid JSON with the allow / ask / deny lists above. I could not run `/permissions` in this headless cloud session, because the CLI there cannot open an interactive login. On a local machine, the next step is to run `/permissions` and check that the three lists appear.
-- **Project health.** `npm test` passes all 4 tests and `npm run lint` is clean, with no app code changed.
+I started a brand-new Claude Code session on branch `set-up-claude`, with no earlier conversation, and checked three things without explaining anything first:
+
+- **Memory (`/memory` check).** I asked which CLAUDE.md files were loaded. The answer was exactly one, the project's `CLAUDE.md`, with first line `# CLAUDE.md`. No user-level `~/.claude/CLAUDE.md` and no nested ones were loaded. This is the same list `/memory` shows.
+- **Permissions (`/permissions` check).** I asked which rules apply, and it listed them all:
+  - allow: `npm test`, `npm run lint`, `git status`, `git diff`;
+  - ask: `git push`, `npm install`;
+  - deny: `Read(./.env)`, `Read(./.env.local)`, force-push and `rm -rf`.
+  
+  It also explained the order: deny beats ask, and ask beats allow, so a normal push asks while a force-push is blocked.
+- **Using the file.** Asked *"how do I run the tests here?"* without any explanation, it answered `npm test` (Node's test runner and supertest) and said it took this from CLAUDE.md before opening `package.json`. It also repeated the "lint must pass before any commit" rule.
+
+That session made one useful point: `Read(./.env)` blocks the Read tool but not `cat .env` through Bash. I therefore added `Bash(cat .env:*)` and `Bash(cat ./.env:*)` to `deny`.
+
+Note on the commands themselves: I ran this check in Claude Code on the web, which doesn't offer the built-in `/memory` and `/permissions` menus. So I asked the same questions directly, and the answers above are what those menus list. In the terminal CLI, `/memory` and `/permissions` show the same file and rules.
+
+Project health: `npm test` passes all 4 tests and `npm run lint` is clean. No app code changed.

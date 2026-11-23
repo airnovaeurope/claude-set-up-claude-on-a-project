@@ -27,7 +27,7 @@ Claude drafted it from reading the code, and I kept it lean on purpose. What rem
 
 Without the deny rule, Claude could open `.env` while "looking at the config". The secret would then sit in its context and could end up in a summary, a commit message or a pasted log. A force-push can silently overwrite teammates' work on the remote. A CLAUDE.md line saying "never read .env" is only guidance, which is why the deny rule is the real lock.
 
-`.claude/settings.local.json` stays personal and is git-ignored. See the finding below.
+`.claude/settings.local.json` is meant to stay personal. It is **not** actually ignored yet, because of the `.gitignore` problem below. I haven't created one, and it is not part of this PR (the PR contains only `CLAUDE.md`, `.claude/settings.json` and `NOTES.md`).
 
 ## Finding while setting up: `.env` was not actually git-ignored
 

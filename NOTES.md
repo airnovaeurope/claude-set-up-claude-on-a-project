@@ -48,6 +48,24 @@ I started a brand-new Claude Code session on branch `set-up-claude`, with no ear
 
 That session made one useful point: `Read(./.env)` blocks the Read tool but not `cat .env` through Bash. I therefore added `Bash(cat .env:*)` and `Bash(cat ./.env:*)` to `deny`.
 
-Note on the commands themselves: I ran this check in Claude Code on the web, which doesn't offer the built-in `/memory` and `/permissions` menus. So I asked the same questions directly, and the answers above are what those menus list. In the terminal CLI, `/memory` and `/permissions` show the same file and rules.
+The first check above ran in Claude Code on the web, which has no `/memory` or `/permissions` menu, so I then ran the real commands in the terminal.
+
+### `/memory` and `/permissions` in the CLI (Claude Code v2.1.331, macOS terminal)
+
+I started a fresh `claude` session in the repo on branch `set-up-claude`.
+
+- **`/memory`** opened the Memory menu:
+  - Project instructions: checked in at `./CLAUDE.md`.
+  - User instructions: listed as "Saved in `~/.claude/CLAUDE.md`". This is the personal, machine-level location and is not part of the repo.
+  - Auto-memory was on.
+
+  Selecting "Project instructions" opened `./CLAUDE.md` in the editor, showing this PR's file (Commands, Conventions, Architecture). I closed it without saving.
+
+- **`/permissions`** listed exactly the rules from `.claude/settings.json`, one tab each:
+  - **Allow:** `Bash(git diff:*)`, `Bash(git status:*)`, `Bash(npm run lint:*)`, `Bash(npm test:*)`.
+  - **Ask:** `Bash(git push:*)`, `Bash(npm install:*)`.
+  - **Deny:** `Bash(cat ./.env:*)`, `Bash(cat .env:*)`, `Bash(git push --force:*)`, `Bash(git push -f:*)`, `Bash(rm -rf:*)`, `Read(./.env.local)`, `Read(./.env)`.
+
+  No rules came from anywhere else. Every rule in the file shows in the right tab, so the file is valid and Claude Code loads it.
 
 Project health: `npm test` passes all 4 tests and `npm run lint` is clean. No app code changed.
